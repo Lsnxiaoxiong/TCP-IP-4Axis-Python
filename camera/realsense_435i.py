@@ -13,6 +13,7 @@ class RealSense435i:
 
         self.latest_color = None
         self.latest_depth = None
+        self.depth_frame = None
         self.pipeline = rs.pipeline()
         config = rs.config()
         # 显式配置流（可选，但推荐）
@@ -58,13 +59,19 @@ class RealSense435i:
             with self.lock:
                 self.latest_color = color_img
                 self.latest_depth = depth_color
+                self.depth_frame = depth
                 self.has_frame = True
 
     def get_latest(self):
         while not self.has_frame:
             time.sleep(1)
         with self.lock:
-            return self.latest_color, self.latest_depth
+            return self.latest_color, self.latest_depth, self.depth_frame
+
+    def get_point_depth(self, point:tuple=(640,320)):
+        depth_frame = self.get_latest()[2]
+        dist = depth_frame.get_distance(int(point[0]),int(point[1]))
+        return dist
 
     def get_frames(self):
         colorizer = rs.colorizer()
@@ -93,41 +100,18 @@ class RealSense435i:
         finally:
             self.pipeline.stop()
     def display(self):
-        # 创建colorizer对象
-        colorizer = rs.colorizer()
-        try:
-            while True:
-                frames = self.pipeline.wait_for_frames()
-                # 对齐深度帧到彩色帧
-                aligned_frames = self.align_to_color.process(frames)
-                # 获取对齐后的帧
-                depth_frame = aligned_frames.get_depth_frame()
-                color_frame = aligned_frames.get_color_frame()
-                if not depth_frame or not color_frame:
-                    continue
+        color_img,depth_img = self.get_latest()[0],self.get_latest()[1]
+        cv2.imshow("Color", color_img)
+        cv2.setMouseCallback("Color", self.mouse_callback)
+        cv2.imshow("Depth", depth_img)
 
-                # 使用colorizer将深度图转换为彩色
-                depth_colormap_frame = colorizer.colorize(depth_frame)
+        # 可选：左右拼接显示，更直观对比
+        # combined = np.hstack((color_image_bgr, depth_colormap))
+        # cv2.imshow("Combined", combined)
+        cv2.waitKey(1)
 
-                # 转换为numpy数组
-                color_image = np.asanyarray(color_frame.get_data())
-                depth_colormap = np.asanyarray(depth_colormap_frame.get_data())
 
-                color_image_bgr = cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR)
 
-                cv2.imshow("Color", color_image_bgr)
-                cv2.setMouseCallback("Color", self.mouse_callback)
-                cv2.imshow("Depth", depth_colormap)
-
-                # 可选：左右拼接显示，更直观对比
-                # combined = np.hstack((color_image_bgr, depth_colormap))
-                # cv2.imshow("Combined", combined)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-
-        finally:
-            self.pipeline.stop()
-            cv2.destroyAllWindows()
 
     def cali(self):
         # 创建colorizer对象
@@ -207,22 +191,24 @@ class RealSense435i:
             cv2.destroyAllWindows()
 
 
-    def save_frame(self):
+    def save_frame(self,save_folder:str=None):
+        if save_folder is None:
+            raise RuntimeError("save_folder cannot be None")
         img = self.get_latest()[0]
         cv2.imshow("frame", img)
         if cv2.waitKey(1) & 0xFF == ord('s'):
-            cv2.imwrite(fr"C:\Users\lsn\Pictures\test_dir\keyboard01\img_{int(time.time()*1000)}.jpg" ,cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+            cv2.imwrite(fr"{save_folder}\img_{int(time.time()*1000)}.jpg" ,cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
 
 if __name__ == '__main__':
     cap = RealSense435i()
     # cap.display()
-    # cap.cali()
+    cap.cali()
     # cap.start_pix_trace()
 
-    while True:
+    # while True:
+    #     cap.display()
         # time.sleep(0.1)
-        cap.save_frame()
-
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        #     break
+        # cap.save_frame(r"C:\Users\lsn\Pictures\test_dir\keyboard01")
+        # print(cap.get_point_depth((566, 403)))
+        # break

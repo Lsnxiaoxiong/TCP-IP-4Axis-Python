@@ -1,14 +1,15 @@
 {
   "left_top": {
-    "x": 219.15,
-    "y": -127.05
+    "x": 230.52,
+    "y": -187.33
   },
   "right_bottom": {
-    "x": 376.14,
-    "y": 137.89
+    "x": 399.90,
+    "y": 102.16
   },
-  "cap_to_end_dist": 274.54,
-  "press_deep": 3.3,
+  "cap_to_end_dist": 307.49,
+  "press_deep": 6,
+  "max_deep": -87.50,
 
   "pix_left_top": {
     "x": 340,

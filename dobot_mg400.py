@@ -17,7 +17,8 @@ class DobotMG400:
                  dashboard_port: int = 29999,
                  mover_port: int = 30003,
                  feed_port: int = 30004,
-                 init_pose: tuple = (219.99, -144.64)
+                 init_pose: tuple = (219.99, -144.64),
+                 max_deep: float = 40
                  ):
 
         self.ip = ip
@@ -25,6 +26,7 @@ class DobotMG400:
         self.mover_port = mover_port
         self.feed_port = feed_port
         self.init_pose = init_pose
+        self.max_deep = max_deep
 
         self.dashboard, self.move, self.feed = self.connect_robot()
         print("开始使能...")
@@ -41,6 +43,8 @@ class DobotMG400:
 
 
     def to_init_pose(self):
+
+        self.run_point([self.x, self.y, 40, 0])
         self.x, self.y, self.z = self.init_pose[0], self.init_pose[1], 40
         self.run_point([self.x, self.y, self.z, 0])
 
@@ -48,6 +52,10 @@ class DobotMG400:
         self.x += delta_x
         self.y += delta_y
         self.z += delta_z
+        if self.z < self.max_deep:
+            self.z = self.max_deep
+
+        self.run_point([self.x, self.y, 40, 0])
         self.run_point([self.x, self.y, self.z, 0])
 
     def connect_robot(self):
