@@ -156,8 +156,6 @@ class KeyboardPressor:
 if __name__ == '__main__':
     controller = KeyboardPressor(
         model_path=r"C:\ProgramData\VIRobotics\Train\yolov8\runs\detect\train3\weights\best.onnx")
-
-
     while True:
         # time.sleep(3)
         cmd = input("输入指令，键盘0:0,键盘1:1")

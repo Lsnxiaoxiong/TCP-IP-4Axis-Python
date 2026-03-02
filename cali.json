@@ -1,22 +1,22 @@
 {
   "left_top": {
-    "x": 230.52,
-    "y": -187.33
+    "x": 215.18,
+    "y": -186.39
   },
   "right_bottom": {
-    "x": 399.90,
-    "y": 102.16
+    "x": 380.73,
+    "y": 162.54
   },
-  "cap_to_end_dist": 307.49,
-  "press_deep": 6,
-  "max_deep": -87.50,
+  "cap_to_end_dist": 309.12,
+  "press_deep": 4,
+  "max_deep": -85.76,
 
   "pix_left_top": {
-    "x": 340,
-    "y": 200
+    "x": 427,
+    "y": 122
   },
   "pix_right_bottom": {
-    "x": 940,
-    "y": 540
+    "x": 1168,
+    "y": 485
   }
 }
