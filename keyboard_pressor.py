@@ -1,7 +1,9 @@
 import json
+import queue
 import threading
 import time
 from enum import Enum
+from queue import Queue
 
 import cv2
 
@@ -73,23 +75,11 @@ class KeyboardPressor:
         _inference_thread = threading.Thread(target=self.inference)
         _inference_thread.daemon = True
         _inference_thread.start()
-        # _cap_thread = threading.Thread(target=self.cap.start_pix_trace)
-        # _cap_thread.daemon = True
-        # _cap_thread.start()
 
     def to_init_pose(self):
         self.robot_pix_x, self.robot_pix_y = self.config.init_pix[0], self.config.init_pix[1]
         self.robot.to_init_pose()
         self.cap.init_tar()
-
-    # def tar2pose(self):
-    #     delta_pix_x = self.cap.tar_x - self.robot_pix_x
-    #     delta_pix_y = self.cap.tar_y - self.robot_pix_y
-    #
-    #     delta_pose_x = delta_pix_y / self.scale
-    #     delta_pose_y = delta_pix_x / self.scale
-    #     print('delta_pix_x', delta_pose_x, 'delta_pose_y', delta_pose_y)
-    #     return delta_pose_x, delta_pose_y
 
     def pix2pose(self, point: tuple):
         delta_pix_x = point[0] - self.robot_pix_x
@@ -172,18 +162,114 @@ class KeyboardPressor:
                 break
 
 
+import socket
+import threading
+
+
+class TCPServer:
+    def __init__(self, host='localhost', port=45678):
+        self.host = host
+        self.port = port
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # 允许端口重用
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.msg_queue = queue.Queue()
+        self._lock = threading.Lock()
+
+    @property
+    def msg(self):
+        while self.msg_queue.empty():
+            time.sleep(1)
+        return self.msg_queue.get()
+
+    def handle_client(self, client_socket, address):
+        """处理客户端连接"""
+        print(f"客户端 {address} 已连接")
+
+        try:
+            while True:
+                # 接收数据
+                data = client_socket.recv(1024)
+                if not data:
+                    break
+
+                message = data.decode('utf-8')
+                print(f"收到来自 {address} 的消息: {message}")
+                data = json.loads(message)
+                self.msg_queue.put(data)
+                print(data)
+
+                response = f"服务器收到: {message}"
+                client_socket.send(response.encode('utf-8'))
+
+        except Exception as e: 
+            print(f"处理客户端 {address} 时出错: {e}")
+        finally:
+            client_socket.close()
+            print(f"客户端 {address} 已断开连接")
+
+    def start(self):
+        """启动服务器"""
+        try:
+            # 绑定地址和端口
+            self.socket.bind((self.host, self.port))
+            # 开始监听
+            self.socket.listen(5)
+            print(f"TCP服务器启动，监听 {self.host}:{self.port}")
+
+            while True:
+                # 等待客户端连接
+                client_socket, address = self.socket.accept()
+
+                # 为每个客户端创建新线程
+                client_thread = threading.Thread(
+                    target=self.handle_client,
+                    args=(client_socket, address)
+                )
+                client_thread.daemon = True
+                client_thread.start()
+
+        except KeyboardInterrupt:
+            print("\n服务器正在关闭...")
+        except Exception as e:
+            print(f"服务器错误: {e}")
+        finally:
+            self.socket.close()
+
+
 if __name__ == '__main__':
-    controller = KeyboardPressor(
-        model_path=r"C:\ProgramData\VIRobotics\Train\yolov8\runs\detect\train3\weights\best.onnx")
+
+    server = TCPServer('localhost', 45678)
+    server_worker = threading.Thread(target=server.start)
+    server_worker.daemon = True
+    server_worker.start()
+
     while True:
-        # time.sleep(3)
-        cmd = input("输入指令，键盘0:0,键盘1:1")
-        if cmd == "0":
-            controller.press_num(Keyboard.NUM_ZERO)
-        elif cmd == "1":
-            controller.press_num(Keyboard.NUM_ONE)
-        elif cmd == "p":
-            controller.press_pix_point(controller.click_point)
-        # time.sleep(2)
-        # controller.to_init_pose()
-        # controller.inference()
+        controller = KeyboardPressor(
+            model_path=r"best.onnx")
+        msg = server.msg
+        try:
+            if "cmd" in msg:
+                """
+                    {"cmd": 1}
+                """
+                cmd = msg["cmd"]
+                if cmd == 0:
+                    print("0")
+                    controller.press_num(Keyboard.NUM_ZERO)
+                elif cmd == 1:
+                    controller.press_num(Keyboard.NUM_ONE)
+                elif cmd == "q":
+                    break
+                print("cmd")
+            if "point" in msg:
+                """
+                    {"point":[123,456]}
+                """
+                point = msg["point"]
+                print("p")
+                controller.press_pix_point((point[0],point[1]))
+        except Exception as e:
+            print(e)
+
+
