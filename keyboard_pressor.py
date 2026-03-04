@@ -28,6 +28,8 @@ class Config:
             self.press_deep = config["press_deep"]
             self.cap_to_end_dist = config["cap_to_end_dist"]
             self.max_deep = config["max_deep"]
+            self.init_pix = (config["init_pos"]["pix_x"], config["init_pos"]["pix_y"])
+            self.init_pos = (config["init_pos"]["pos_x"], config["init_pos"]["pos_y"])
         except Exception as e:
             print(e)
             raise RuntimeError("加载cali.json配置文件失败")
@@ -38,15 +40,30 @@ class Config:
         x_scale = (self.pix_right_bottom[1] - self.pix_left_top[1]) / (self.right_bottom[0] - self.left_top[0])
         return (y_scale + x_scale) / 2
 
+    @property
+    def scale_x(self):
+        """
+        机械臂x轴
+        """
+        return (self.pix_right_bottom[1] - self.pix_left_top[1]) / (self.right_bottom[0] - self.left_top[0])
+
+    @property
+    def scale_y(self):
+        """
+        机械臂y轴
+        """
+        return (self.pix_right_bottom[0] - self.pix_left_top[0]) / (self.right_bottom[1] - self.left_top[1])
+
 
 class KeyboardPressor:
     def __init__(self, model_path: str):
-        self.click_point = (640,360)
+        self.click_point = (640, 360)
         self.config = Config()
-        self.robot = DobotMG400(init_pose=(self.config.left_top[0], self.config.left_top[1]),max_deep=self.config.max_deep)
-        self.cap = RealSense435i(init_point=(self.config.pix_left_top[0], self.config.pix_left_top[1]))
+        self.robot = DobotMG400(init_pose=(self.config.init_pos[0], self.config.init_pos[1]),
+                                max_deep=self.config.max_deep)
+        self.cap = RealSense435i(init_point=(self.config.init_pix[0], self.config.init_pix[1]))
         self.engine: Yolov8Engine2 = Yolov8Engine2(model_path=model_path)
-        self.robot_pix_x, self.robot_pix_y = self.config.pix_left_top[0], self.config.pix_left_top[1]
+        self.robot_pix_x, self.robot_pix_y = self.config.init_pix[0], self.config.init_pix[1]
 
         self.scale = self.config.scale
         self.press_deep = self.config.press_deep
@@ -61,37 +78,39 @@ class KeyboardPressor:
         # _cap_thread.start()
 
     def to_init_pose(self):
-        self.robot_pix_x, self.robot_pix_y = self.config.pix_left_top[0], self.config.pix_left_top[1]
+        self.robot_pix_x, self.robot_pix_y = self.config.init_pix[0], self.config.init_pix[1]
         self.robot.to_init_pose()
         self.cap.init_tar()
 
-    def tar2pose(self):
-        delta_pix_x = self.cap.tar_x - self.robot_pix_x
-        delta_pix_y = self.cap.tar_y - self.robot_pix_y
-
-        delta_pose_x = delta_pix_y / self.scale
-        delta_pose_y = delta_pix_x / self.scale
-        print('delta_pix_x', delta_pose_x, 'delta_pose_y', delta_pose_y)
-        return delta_pose_x, delta_pose_y
+    # def tar2pose(self):
+    #     delta_pix_x = self.cap.tar_x - self.robot_pix_x
+    #     delta_pix_y = self.cap.tar_y - self.robot_pix_y
+    #
+    #     delta_pose_x = delta_pix_y / self.scale
+    #     delta_pose_y = delta_pix_x / self.scale
+    #     print('delta_pix_x', delta_pose_x, 'delta_pose_y', delta_pose_y)
+    #     return delta_pose_x, delta_pose_y
 
     def pix2pose(self, point: tuple):
         delta_pix_x = point[0] - self.robot_pix_x
         delta_pix_y = point[1] - self.robot_pix_y
 
-        delta_pose_x = delta_pix_y / self.scale
-        delta_pose_y = delta_pix_x / self.scale
+        delta_pose_x = delta_pix_y / self.config.scale_x
+        delta_pose_y = delta_pix_x / self.config.scale_y
+        # delta_pose_x = delta_pix_y / self.scale
+        # delta_pose_y = delta_pix_x / self.scale
         print('delta_pix_x', delta_pose_x, 'delta_pose_y', delta_pose_y)
         return delta_pose_x, delta_pose_y
 
-    def to_tar_pose(self):
-        delta_pose_x, delta_pose_y = self.tar2pose()
-        self.robot_pix_x, self.robot_pix_y = self.cap.tar_x, self.cap.tar_y
-        self.robot.to_delta_pose(delta_pose_x, delta_pose_y, 0)
-
-    def press_keyboard(self):
-        delta_pose_x, delta_pose_y = self.tar2pose()
-        self.robot_pix_x, self.robot_pix_y = self.cap.tar_x, self.cap.tar_y
-        self.robot.to_delta_pose(delta_pose_x, delta_pose_y, -80)
+    # def to_tar_pose(self):
+    #     delta_pose_x, delta_pose_y = self.tar2pose()
+    #     self.robot_pix_x, self.robot_pix_y = self.cap.tar_x, self.cap.tar_y
+    #     self.robot.to_delta_pose(delta_pose_x, delta_pose_y, 0)
+    #
+    # def press_keyboard(self):
+    #     delta_pose_x, delta_pose_y = self.tar2pose()
+    #     self.robot_pix_x, self.robot_pix_y = self.cap.tar_x, self.cap.tar_y
+    #     self.robot.to_delta_pose(delta_pose_x, delta_pose_y, -80)
 
     def press_pix_point(self, point: tuple):
         pix_x, pix_y = point[0], point[1]
@@ -112,15 +131,15 @@ class KeyboardPressor:
             print(f"未检测到{num.name}")
             return
         xc, yc = detect_res[num.value]["xc"], detect_res[num.value]["yc"]
-        pix_x,pix_y = xc*self.engine.orig_img_size[1], yc*self.engine.orig_img_size[0]
-        depth = self.cap.get_point_depth((pix_x,pix_y)) * 1000
-        if depth==0:
+        pix_x, pix_y = xc * self.engine.orig_img_size[1], yc * self.engine.orig_img_size[0]
+        depth = self.cap.get_point_depth((pix_x, pix_y)) * 1000
+        if depth == 0:
             print("检测不到深度！")
             return
-        delta_z = -(depth - self.config.cap_to_end_dist)-self.config.press_deep
-        delta_x,delta_y = self.pix2pose((pix_x,pix_y ))
+        delta_z = -(depth - self.config.cap_to_end_dist) - self.config.press_deep
+        delta_x, delta_y = self.pix2pose((pix_x, pix_y))
 
-        self.robot_pix_x, self.robot_pix_y = pix_x,pix_y
+        self.robot_pix_x, self.robot_pix_y = pix_x, pix_y
         print(delta_z)
         self.robot.to_delta_pose(delta_x, delta_y, delta_z)
         time.sleep(1)
