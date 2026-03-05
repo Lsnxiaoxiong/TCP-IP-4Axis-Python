@@ -175,6 +175,12 @@ class TCPServer:
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.msg_queue = queue.Queue()
         self._lock = threading.Lock()
+        self.cur_socket = None
+
+    def send_msg(self, msg: str):
+        if self.cur_socket is None:
+            return
+        self.cur_socket.send(msg.encode('utf-8'))
 
     @property
     def msg(self):
@@ -185,7 +191,7 @@ class TCPServer:
     def handle_client(self, client_socket, address):
         """处理客户端连接"""
         print(f"客户端 {address} 已连接")
-
+        self.cur_socket = client_socket
         try:
             while True:
                 # 接收数据
@@ -199,12 +205,13 @@ class TCPServer:
                 self.msg_queue.put(data)
                 print(data)
 
-                response = f"服务器收到: {message}"
-                client_socket.send(response.encode('utf-8'))
+                # response = f"服务器收到: {message}"
+                # client_socket.send(response.encode('utf-8'))
 
-        except Exception as e: 
+        except Exception as e:
             print(f"处理客户端 {address} 时出错: {e}")
         finally:
+            self.cur_socket = None
             client_socket.close()
             print(f"客户端 {address} 已断开连接")
 
@@ -239,14 +246,14 @@ class TCPServer:
 
 if __name__ == '__main__':
 
+    # controller = KeyboardPressor(
+    #     model_path=r"best.onnx")
     server = TCPServer('localhost', 45678)
     server_worker = threading.Thread(target=server.start)
     server_worker.daemon = True
     server_worker.start()
 
     while True:
-        controller = KeyboardPressor(
-            model_path=r"best.onnx")
         msg = server.msg
         try:
             if "cmd" in msg:
@@ -254,13 +261,13 @@ if __name__ == '__main__':
                     {"cmd": 1}
                 """
                 cmd = msg["cmd"]
-                if cmd == 0:
-                    print("0")
-                    controller.press_num(Keyboard.NUM_ZERO)
-                elif cmd == 1:
-                    controller.press_num(Keyboard.NUM_ONE)
-                elif cmd == "q":
-                    break
+                # if cmd == 0:
+                #     print("0")
+                #     controller.press_num(Keyboard.NUM_ZERO)
+                # elif cmd == 1:
+                #     controller.press_num(Keyboard.NUM_ONE)
+                # elif cmd == "q":
+                #     break
                 print("cmd")
             if "point" in msg:
                 """
@@ -268,8 +275,7 @@ if __name__ == '__main__':
                 """
                 point = msg["point"]
                 print("p")
-                controller.press_pix_point((point[0],point[1]))
+                # controller.press_pix_point((point[0],point[1]))
+            server.send_msg("1")
         except Exception as e:
             print(e)
-
-
