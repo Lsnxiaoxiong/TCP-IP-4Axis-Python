@@ -1,14 +1,12 @@
 import json
 import queue
-import threading
 import time
 from enum import Enum
-from queue import Queue
 
 import cv2
 
 from camera.realsense_435i import RealSense435i
-from dobot_mg400 import DobotMG400
+from robot.dobot_mg400 import DobotMG400
 from yolo.yolov8_onnx import Yolov8Engine2
 
 
@@ -28,7 +26,7 @@ class Config:
             self.pix_left_top = (config["pix_left_top"]["x"], config["pix_left_top"]["y"])
             self.pix_right_bottom = (config["pix_right_bottom"]["x"], config["pix_right_bottom"]["y"])
             self.press_deep = config["press_deep"]
-            self.cap_to_end_dist = config["cap_to_end_dist"]
+            self.cap_to_end_dist = config["cap_to_keyborad"]-(40+abs(config["robot_on_keyboard"]))
             self.max_deep = config["max_deep"]
             self.init_pix = (config["init_pos"]["pix_x"], config["init_pos"]["pix_y"])
             self.init_pos = (config["init_pos"]["pos_x"], config["init_pos"]["pos_y"])
@@ -266,6 +264,8 @@ if __name__ == '__main__':
                 #     controller.press_num(Keyboard.NUM_ZERO)
                 # elif cmd == 1:
                 #     controller.press_num(Keyboard.NUM_ONE)
+                # elif cmd == 2:
+                #     controller.press_num(Keyboard.NUM_TWO)
                 # elif cmd == "q":
                 #     break
                 print("cmd")

@@ -7,7 +7,9 @@
     "x": 377.11,
     "y": 161.82
   },
+  "cap_to_keyborad": 487,
   "cap_to_end_dist": 362.44,
+  "robot_on_keyboard": -84.56,
   "press_deep": 4,
   "max_deep": -88.56,
 
@@ -24,7 +26,7 @@
   "init_pos": {
     "pix_x": 340,
     "pix_y": 200,
-    "pos_x": 236.46,
-    "pos_y": -155.12
+    "pos_x": 266.37,
+    "pos_y":  -155.05
   }
 }
