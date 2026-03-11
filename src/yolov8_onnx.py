@@ -9,11 +9,34 @@ import onnxruntime as ort
 
 
 class Yolov8Engine2:
+    """
+    YOLOv8 ONNX 推理引擎
+
+    使用 ONNX Runtime 运行 YOLOv8 目标检测模型，
+    支持 CUDA 加速和 CPU fallback。
+
+    Attributes:
+        model_path: ONNX 模型文件路径
+        conf: 置信度阈值
+        iou: NMS 的 IoU 阈值
+        session: ONNX Runtime 推理会话
+        input_size: 模型输入尺寸
+        orig_img_size: 原始图像尺寸
+        cur_detect_res: 当前检测结果
+    """
     def __init__(self,
                  model_path: str,
                  conf: float = 0.45,
                  iou: float = 0.65
                  ):
+        """
+        初始化 YOLOv8 推理引擎
+
+        Args:
+            model_path: ONNX 模型文件路径
+            conf: 置信度阈值，默认 0.45
+            iou: NMS 的 IoU 阈值，默认 0.65
+        """
         self.input_name = None
         self.input_size = None
         self.model_path = model_path
@@ -28,6 +51,15 @@ class Yolov8Engine2:
         self.load()
 
     def load(self):
+        """
+        加载 ONNX 模型并配置推理引擎
+
+        自动检测可用的执行 provider（CUDA/CPU），
+        优先使用 CUDA 加速，如果不可用则回退到 CPU。
+
+        Raises:
+            Exception: 模型加载失败时抛出
+        """
         # 检查可用的 providers
         available_providers = ort.get_available_providers()
         print(f"可用的 providers: {available_providers}")
@@ -66,9 +98,18 @@ class Yolov8Engine2:
 
         self.input_size = self.session.get_inputs()[0].shape[2:]
         self.input_name = self.session.get_inputs()[0].name
-        print(f"模型输入尺寸: {self.input_size}")
+        print(f"模型输入尺寸：{self.input_size}")
 
     def inference(self, color_frame):
+        """
+        执行目标检测推理
+
+        对输入帧进行预处理、推理和后处理，
+        将检测结果存储到 cur_detect_res 中。
+
+        Args:
+            color_frame: 输入的彩色图像帧（numpy 数组）
+        """
         temp_res = {}
 
         # 添加计时
@@ -84,9 +125,9 @@ class Yolov8Engine2:
         postprocess_time = time.time()
 
         # 打印各阶段耗时（调试用）
-        # print(f"预处理: {(preprocess_time-start_time)*1000:.2f}ms, "
-        #       f"推理: {(inference_time-preprocess_time)*1000:.2f}ms, "
-        #       f"后处理: {(postprocess_time-inference_time)*1000:.2f}ms")
+        # print(f"预处理：{(preprocess_time-start_time)*1000:.2f}ms, "
+        #       f"推理：{(inference_time-preprocess_time)*1000:.2f}ms, "
+        #       f"后处理：{(postprocess_time-inference_time)*1000:.2f}ms")
 
         for box, confidence, class_id in zip(boxes, confidences, class_ids):
             xc = box[0] / self.input_size[0]
@@ -107,17 +148,35 @@ class Yolov8Engine2:
     @property
     def latest_res(self):
         """
-                {"xc": xc,
-                "yc": yc,
-                "w": w,
-                "h": h,
-                "confidence": confidence,}
+        获取最新的检测结果
+
+        返回检测结果的副本以避免并发问题。
+        检测结果包含每个类别的边界框、置信度等信息。
+
+        Returns:
+            dict: 检测结果字典，格式为 {class_id: {"xc": x_center, "yc": y_center, "w": width, "h": height, "confidence": conf}}
         """
         with self._lock:
             return self.cur_detect_res.copy()  # 返回副本避免并发问题
 
     def preprocess(self, color_frame):
-        """优化的预处理"""
+        """
+        图像预处理
+
+        将输入图像转换为模型所需的格式：
+        1. BGR 转 RGB（如果需要）
+        2. 缩放到模型输入尺寸
+        3. 归一化到 [0, 1]
+        4. 转换为 CHW 格式并添加 batch 维度
+
+        Args:
+            color_frame: 输入的彩色图像帧
+
+        Returns:
+            tuple: (input_image, img_resized)
+                - input_image: 预处理后的图像（NCHW 格式）
+                - img_resized: 缩放后的图像
+        """
         # 如果输入已经是 RGB，跳过转换
         if color_frame.shape[2] == 3:
             img = color_frame if color_frame.dtype == np.uint8 else color_frame.astype(np.uint8)
@@ -136,7 +195,23 @@ class Yolov8Engine2:
         return img_expanded, img_resized
 
     def postprocess(self, outputs):
-        """优化的后处理"""
+        """
+        推理后处理
+
+        解析模型输出，应用置信度阈值过滤和 NMS：
+        1. 过滤低置信度检测
+        2. 提取类别和置信度
+        3. 应用 NMS 去除重叠框
+
+        Args:
+            outputs: ONNX 模型输出
+
+        Returns:
+            tuple: (boxes, confidences, class_ids)
+                - boxes: 检测框列表 [x1, y1, x2, y2]
+                - confidences: 置信度列表
+                - class_ids: 类别 ID 列表
+        """
         predictions = outputs[0][0]
 
         # 向量化操作
