@@ -7,8 +7,7 @@ import cv2
 from src.config import Config
 from src.realsense_435i import RealSense435i
 from src.dobot_mg400 import DobotMG400
-from src.tcp_server import TCPServer
-from yolo.yolov8_onnx import Yolov8Engine2
+from src.yolov8_onnx import Yolov8Engine2
 import threading
 
 

@@ -1,7 +1,7 @@
 import cv2
 
 from src.realsense_435i import RealSense435i
-from yolo.yolov8_onnx import Yolov8Engine2
+from src.yolov8_onnx import Yolov8Engine2
 
 if __name__ == "__main__":
     engine:Yolov8Engine2 = Yolov8Engine2(model_path=r"C:\ProgramData\VIRobotics\Train\yolov8\runs\detect\train3\weights\best.onnx")
