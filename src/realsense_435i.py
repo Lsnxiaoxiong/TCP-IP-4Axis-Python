@@ -99,6 +99,7 @@ class RealSense435i:
 
         finally:
             self.pipeline.stop()
+
     def display(self):
         color_img,depth_img = self.get_latest()[0],self.get_latest()[1]
         cv2.imshow("Color", color_img)
@@ -109,9 +110,6 @@ class RealSense435i:
         # combined = np.hstack((color_image_bgr, depth_colormap))
         # cv2.imshow("Combined", combined)
         cv2.waitKey(1)
-
-
-
 
     def cali(self):
         # 创建colorizer对象
@@ -152,63 +150,9 @@ class RealSense435i:
             self.pipeline.stop()
             cv2.destroyAllWindows()
 
-    def start_pix_trace(self):
-        colorizer = rs.colorizer()
-        try:
-            while True:
-                frames = self.pipeline.wait_for_frames()
-                # 对齐深度帧到彩色帧
-                aligned_frames = self.align_to_color.process(frames)
-                # 获取对齐后的帧
-                depth_frame = aligned_frames.get_depth_frame()
-                color_frame = aligned_frames.get_color_frame()
-                if not depth_frame or not color_frame:
-                    continue
-
-                # 使用colorizer将深度图转换为彩色
-                depth_colormap_frame = colorizer.colorize(depth_frame)
-
-                # 转换为numpy数组
-                color_image = np.asanyarray(color_frame.get_data())
-                depth_colormap = np.asanyarray(depth_colormap_frame.get_data())
-
-                color_image_bgr = cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR)
-
-                cv2.circle(color_image_bgr, (640, 360), 5, (0, 0, 255))
-                # cv2.circle(color_image_bgr, (644, 473), 5, (0, 0, 255))
-                cv2.line(color_image_bgr, (340, 200), (940, 200), (0, 255, 0), thickness=1)
-                cv2.line(color_image_bgr, (340, 200), (340, 540), (0, 255, 0), thickness=1)
-                cv2.line(color_image_bgr, (340, 540), (940, 540), (0, 255, 0), thickness=1)
-                cv2.line(color_image_bgr, (940, 200), (940, 540), (0, 255, 0), thickness=1)
-                cv2.imshow("Color", color_image_bgr)
-                cv2.setMouseCallback("Color", self.mouse_callback)
-                # cv2.imshow("Depth", depth_colormap)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-
-        finally:
-            self.pipeline.stop()
-            cv2.destroyAllWindows()
-
-
-    def save_frame(self,save_folder:str=None):
-        if save_folder is None:
-            raise RuntimeError("save_folder cannot be None")
-        img = self.get_latest()[0]
-        cv2.imshow("frame", img)
-        if cv2.waitKey(1) & 0xFF == ord('s'):
-            cv2.imwrite(fr"{save_folder}\img_{int(time.time()*1000)}.jpg" ,cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
 
 if __name__ == '__main__':
     cap = RealSense435i()
     # cap.display()
     cap.cali()
-    # cap.start_pix_trace()
-
-    # while True:
-    #     cap.display()
-        # time.sleep(0.1)
-        # cap.save_frame(r"C:\Users\lsn\Pictures\test_dir\keyboard01")
-        # print(cap.get_point_depth((566, 403)))
-        # break

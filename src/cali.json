@@ -12,13 +12,10 @@
   "robot_on_keyboard": -84.56,
   "press_deep": 4,
   "max_deep": -88.56,
-
   "pix_left_top": {
     "x": 162,
     "y": 32
   },
-
-
   "pix_right_bottom": {
     "x": 954,
     "y": 452
@@ -27,6 +24,7 @@
     "pix_x": 340,
     "pix_y": 200,
     "pos_x": 266.37,
-    "pos_y":  -155.05
+    "pos_y": -155.05,
+    "pos_z": 40
   }
 }

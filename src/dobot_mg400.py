@@ -17,7 +17,7 @@ class DobotMG400:
                  dashboard_port: int = 29999,
                  mover_port: int = 30003,
                  feed_port: int = 30004,
-                 init_pose: tuple = (219.99, -144.64),
+                 init_pose: tuple = (219.99, -144.64,40),
                  max_deep: float = 40
                  ):
 
@@ -39,13 +39,13 @@ class DobotMG400:
         feed_thread1.daemon = True
         feed_thread1.start()
 
-        self.x, self.y, self.z = self.init_pose[0], self.init_pose[1], 40
+        self.x, self.y, self.z = self.init_pose[0], self.init_pose[1], self.init_pose[2]
 
 
     def to_init_pose(self):
 
-        self.run_point([self.x, self.y, 40, 0])
-        self.x, self.y, self.z = self.init_pose[0], self.init_pose[1], 40
+        self.run_point([self.x, self.y, self.init_pose[2], 0])
+        self.x, self.y, self.z = self.init_pose[0], self.init_pose[1], self.init_pose[2]
         self.run_point([self.x, self.y, self.z, 0])
 
     def to_delta_pose(self, delta_x, delta_y,delta_z):
@@ -55,7 +55,7 @@ class DobotMG400:
         if self.z < self.max_deep:
             self.z = self.max_deep
 
-        self.run_point([self.x, self.y, 40, 0])
+        self.run_point([self.x, self.y, self.init_pose[2], 0])
         self.run_point([self.x, self.y, self.z, 0])
 
     def connect_robot(self):

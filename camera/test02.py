@@ -3,7 +3,7 @@ import time
 
 import cv2
 
-from camera.realsense_435i import RealSense435i
+from src.realsense_435i import RealSense435i
 
 
 def show_rgb(cap, name):
