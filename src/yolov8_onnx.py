@@ -3,12 +3,10 @@ import time
 
 import cv2
 import numpy as np
-
-
 import onnxruntime as ort
 
 
-class Yolov8Engine2:
+class Yolov8Engine:
     """
     YOLOv8 ONNX 推理引擎
 
@@ -241,6 +239,4 @@ class Yolov8Engine2:
         return [], [], []
 
 if __name__ == "__main__":
-    import onnxruntime as ort
-
     print(ort.get_available_providers())

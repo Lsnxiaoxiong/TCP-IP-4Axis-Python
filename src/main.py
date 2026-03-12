@@ -19,7 +19,7 @@ if __name__ == '__main__':
         try:
             if "points" in msg:
                 """
-                    {"points":[[123,456],[223,435]]}
+                    {"points":[123,456]}
                 """
                 point = msg["points"]
                 print("p")

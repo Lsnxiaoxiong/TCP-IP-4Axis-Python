@@ -5,9 +5,9 @@ from enum import Enum
 import cv2
 
 from src.config import Config
-from src.realsense_435i import RealSense435i
+from src.realsense435i import RealSense435i
 from src.dobot_mg400 import DobotMG400
-from src.yolov8_onnx import Yolov8Engine2
+from src.yolov8_onnx import Yolov8Engine
 import threading
 
 
@@ -60,7 +60,7 @@ class KeyboardPressor:
         self.robot = DobotMG400(init_pose=self.config.init_pos,
                                 max_deep=self.config.max_deep)
         self.cap = RealSense435i(init_point=(self.config.init_pix[0], self.config.init_pix[1]))
-        self.engine: Yolov8Engine2 = Yolov8Engine2(model_path=model_path)
+        self.engine: Yolov8Engine = Yolov8Engine(model_path=model_path)
         self.robot_pix_x, self.robot_pix_y = self.config.init_pix[0], self.config.init_pix[1]
 
         self.scale = self.config.scale
