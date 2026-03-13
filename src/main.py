@@ -1,6 +1,6 @@
 import threading
 
-from src.keyboard_pressor import KeyboardPressor, Keyboard
+from src.keyboard_pressor import KeyboardPressor
 from src.tcp_server import TCPServer
 
 
