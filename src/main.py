@@ -17,14 +17,14 @@ if __name__ == '__main__':
     while True:
         msg = server.msg
         try:
-            if "points" in msg:
+            if "point" in msg:
                 """ 
-                    {"points":[x,y,depth]}
-                    {"points":[123,456, 233]}
+                    {"point":[x,y,depth]}
+                    {"point":[123,456,20]}
                 """
-                point = msg["points"]
+                point = msg["point"]
                 print("p")
-                # controller.press_pix_point((point[0],point[1]))
+                # controller.press_pix_point(point)
             server.send_msg("1")
         except Exception as e:
             print(e)
