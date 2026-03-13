@@ -59,26 +59,28 @@ class KeyboardPressor:
         self.config = Config()
         self.robot = DobotMG400(init_pose=self.config.init_pos,
                                 max_deep=self.config.max_deep)
-        self.cap = RealSense435i(init_point=(self.config.init_pix[0], self.config.init_pix[1]))
-        self.engine: Yolov8Engine = Yolov8Engine(model_path=model_path)
+        # self.cap = RealSense435i(init_point=(self.config.init_pix[0], self.config.init_pix[1]))
+        # self.engine: Yolov8Engine = Yolov8Engine(model_path=model_path)
         self.robot_pix_x, self.robot_pix_y = self.config.init_pix[0], self.config.init_pix[1]
 
         self.scale = self.config.scale
         self.press_deep = self.config.press_deep
 
-        self.to_init_pose()
+        self.to_init_pose(self.config.init_pos[0], self.config.init_pos[1])
 
-        _inference_thread = threading.Thread(target=self._inference_loop)
-        _inference_thread.daemon = True
-        _inference_thread.start()
+        # _inference_thread = threading.Thread(target=self._inference_loop)
+        # _inference_thread.daemon = True
+        # _inference_thread.start()
 
-    def to_init_pose(self):
+    def to_init_pose(self,x ,y ):
         """
         移动到初始姿态
 
         重置机器人到初始位置，并重置相机的目标点。
         """
         # self.robot_pix_x, self.robot_pix_y = self.config.init_pix[0], self.config.init_pix[1]
+
+        self.robot.run_point([x,y,self.config.init_pos[2],0])
         self.robot.to_init_pose()
         # self.cap.init_tar()
 
@@ -119,28 +121,11 @@ class KeyboardPressor:
 
         # self.robot_pix_x, self.robot_pix_y = pix_x, pix_y
         # print(delta_z)
-        self.robot.run_point([robot_x, robot_y, robot_z])
+        self.robot.run_point([robot_x, robot_y, self.config.init_pos[2],0])
+        self.robot.run_point([robot_x, robot_y, robot_z,0])
         time.sleep(1)
-        self.to_init_pose()
+        self.to_init_pose(robot_x, robot_y)
 
-    def press_pix_point_with_depth(self, point: tuple):
-        """
-        按压指定像素位置
-
-        根据像素坐标计算深度和位移，控制机械臂执行按压动作。
-
-        Args:
-            point: 目标像素坐标与深度 (x, y, depth)
-        """
-        pix_x, pix_y, depth = point[0], point[1], point[2]
-        delta_z = -(depth - self.config.cap_to_robot_end) - self.config.press_deep
-        delta_x, delta_y = self.pix2pose((pix_x, pix_y))
-
-        self.robot_pix_x, self.robot_pix_y = pix_x, pix_y
-        print(delta_z)
-        self.robot.to_delta_pose(delta_x, delta_y, delta_z)
-        time.sleep(1)
-        self.to_init_pose()
 
     def press_num(self, num: Keyboard):
         """
