@@ -32,9 +32,7 @@ class DobotMG400:
                  ip: str = "192.168.1.6",
                  dashboard_port: int = 29999,
                  mover_port: int = 30003,
-                 feed_port: int = 30004,
-                 init_pose: tuple = (219.99, -144.64,40),
-                 max_deep: float = 40
+                 feed_port: int = 30004
                  ):
         """
         初始化 Dobot MG400 机械臂控制器
@@ -52,8 +50,7 @@ class DobotMG400:
         self.dashboard_port = dashboard_port
         self.mover_port = mover_port
         self.feed_port = feed_port
-        self.init_pose = init_pose
-        self.max_deep = max_deep
+
 
         self.dashboard, self.move, self.feed = self.connect_robot()
         print("开始使能...")
@@ -67,40 +64,6 @@ class DobotMG400:
         feed_thread1.start()
 
         self.x, self.y, self.z = self.init_pose[0], self.init_pose[1], self.init_pose[2]
-
-
-    def to_init_pose(self):
-        """
-        移动到初始姿态
-
-        先移动到安全高度（Z 为 init_pose[2]），再移动到初始 XY 位置，
-        最后下降到初始 Z 坐标。
-        """
-
-        self.run_point([self.x, self.y, self.init_pose[2], 0])
-        self.x, self.y, self.z = self.init_pose[0], self.init_pose[1], self.init_pose[2]
-        self.run_point([self.x, self.y, self.z, 0])
-
-    def to_delta_pose(self, delta_x, delta_y,delta_z):
-        """
-        移动到相对位置
-
-        基于当前位置累加位移量，并限制 Z 坐标不小于 max_deep。
-        先抬起到安全高度，再移动到目标 XY 位置，最后下降到目标 Z 坐标。
-
-        Args:
-            delta_x: X 方向位移（mm）
-            delta_y: Y 方向位移（mm）
-            delta_z: Z 方向位移（mm）
-        """
-        self.x += delta_x
-        self.y += delta_y
-        self.z += delta_z
-        if self.z < self.max_deep:
-            self.z = self.max_deep
-
-        self.run_point([self.x, self.y, self.init_pose[2], 0])
-        self.run_point([self.x, self.y, self.z, 0])
 
     def connect_robot(self):
         """
@@ -125,7 +88,7 @@ class DobotMG400:
             print(":(连接失败:(")
             raise e
 
-    def run_point(self, point_list: list):
+    def run_point(self, point: list):
         """
         执行点到点运动
 
@@ -134,8 +97,8 @@ class DobotMG400:
         Args:
             point_list: 目标点坐标列表 [x, y, z, r]
         """
-        self.move.MovL(point_list[0], point_list[1], point_list[2], point_list[3])
-        self.wait_arrive(point_list)
+        self.move.MovL(point[0], point[1], point[2], point[3])
+        self.wait_arrive(point)
 
     def get_feed(self, feed: DobotApi):
         """
