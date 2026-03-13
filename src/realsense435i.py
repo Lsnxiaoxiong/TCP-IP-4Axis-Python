@@ -8,25 +8,25 @@ import numpy as np
 
 class RealSense435i:
     """
-    Intel RealSense D435i camera wrapper class.
+    Intel RealSense D435i 相机封装类
 
-    Provides color and depth image capture, alignment, and display functionality.
-    Supports mouse interaction for selecting target points and retrieving depth information.
+    提供彩色图像和深度图像的捕获、对齐和显示功能。
+    支持鼠标交互选择目标点，并获取该点的深度信息。
 
     Attributes:
-        latest_color: Latest color image frame
-        latest_depth: Latest depth image frame (colorized)
-        depth_frame: Raw depth frame object
-        tar_x: Target point X coordinate
-        tar_y: Target point Y coordinate
+        latest_color: 最新彩色图像帧
+        latest_depth: 最新深度图像帧（彩色映射）
+        depth_frame: 原始深度帧
+        tar_x: 目标点 X 坐标
+        tar_y: 目标点 Y 坐标
     """
 
     def __init__(self, init_point:tuple = (340, 200)):
         """
-        Initialize the RealSense camera.
+        初始化 RealSense 相机
 
         Args:
-            init_point: Initial target point coordinates (x, y), default (340, 200)
+            init_point: 初始目标点坐标 (x, y)，默认为 (340, 200)
         """
         self.lock = threading.Lock()
 
@@ -52,25 +52,24 @@ class RealSense435i:
 
     def init_tar(self):
         """
-        Initialize target point to initial position.
+        初始化目标点到初始位置
 
-        Resets the target point coordinates to the initial point
-        specified in the constructor.
+        将目标点坐标重置为构造函数中指定的初始点。
         """
         self.tar_x, self.tar_y = self.init_point[0], self.init_point[1]
 
     def mouse_callback(self, event, x, y, flags, param):
         """
-        Mouse event callback function.
+        鼠标事件回调函数
 
-        Captures left mouse button click events and updates target point coordinates.
+        捕获鼠标左键点击事件，更新目标点坐标。
 
         Args:
-            event: OpenCV mouse event type
-            x: Mouse click X coordinate
-            y: Mouse click Y coordinate
-            flags: Mouse event flags
-            param: Additional parameters
+            event: OpenCV 鼠标事件类型
+            x: 鼠标点击位置的 X 坐标
+            y: 鼠标点击位置的 Y 坐标
+            flags: 鼠标事件标志位
+            param: 附加参数
         """
         if event == cv2.EVENT_LBUTTONDOWN:
             self.tar_x, self.tar_y = x, y
@@ -78,11 +77,10 @@ class RealSense435i:
 
     def _capture_loop(self):
         """
-        Camera capture loop (runs in background thread).
+        相机捕获循环（后台线程运行）
 
-        Continuously acquires frames from the RealSense camera,
-        stores aligned color and depth images to instance variables
-        for access by other methods.
+        持续从 RealSense 相机获取帧数据，将对齐后的彩色和深度图像
+        存储到实例变量中供其他方法访问。
         """
         while True:
             frames = self.pipeline.wait_for_frames()
@@ -108,15 +106,15 @@ class RealSense435i:
 
     def get_latest(self):
         """
-        Get the latest color and depth images.
+        获取最新的彩色和深度图像
 
-        Waits until frames are available, then returns lock-protected image data.
+        等待直到有可用帧，然后返回锁保护的图像数据副本。
 
         Returns:
             tuple: (color_img, depth_color, depth_frame)
-                - color_img: Color image (RGB format)
-                - depth_color: Depth image (colorized)
-                - depth_frame: Raw depth frame object
+                - color_img: 彩色图像 (RGB)
+                - depth_color: 深度图像（彩色映射）
+                - depth_frame: 原始深度帧对象
         """
         while not self.has_frame:
             time.sleep(1)
@@ -125,13 +123,13 @@ class RealSense435i:
 
     def get_point_depth(self, point:tuple=(640,320)):
         """
-        Get depth value at specified pixel point.
+        获取指定像素点的深度值
 
         Args:
-            point: Pixel coordinates (x, y), default (640, 320)
+            point: 像素坐标 (x, y)，默认为 (640, 320)
 
         Returns:
-            float: Depth value in meters
+            float: 深度值（米）
         """
         depth_frame = self.get_latest()[2]
         dist = depth_frame.get_distance(int(point[0]),int(point[1]))
@@ -139,12 +137,12 @@ class RealSense435i:
 
     def get_frames(self):
         """
-        Get continuous frame stream (generator).
+        获取连续的帧流（生成器）
 
         Yields:
             tuple: (color_image_bgr, depth_colormap)
-                - color_image_bgr: BGR format color image
-                - depth_colormap: Colorized depth image
+                - color_image_bgr: BGR 格式的彩色图像
+                - depth_colormap: 彩色映射的深度图像
         """
         colorizer = rs.colorizer()
         try:

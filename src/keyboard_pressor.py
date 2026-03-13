@@ -12,15 +12,15 @@ import threading
 
 class Keyboard(Enum):
     """
-    Keyboard key enumeration class.
+    键盘按键枚举类
 
-    Defines recognizable keyboard keys and their corresponding index values
-    for YOLOv8 object detection.
+    定义可识别的键盘按键及其对应的索引值，
+    用于 YOLOv8 目标检测。
 
     Members:
-        NUM_ZERO: Number key 0 (YOLO class index 0)
-        NUM_ONE: Number key 1 (YOLO class index 1)
-        NUM_TWO: Number key 2 (YOLO class index 2)
+        NUM_ZERO: 数字键 0 (YOLO 类别索引 0)
+        NUM_ONE: 数字键 1 (YOLO 类别索引 1)
+        NUM_TWO: 数字键 2 (YOLO 类别索引 2)
     """
     NUM_ZERO = 0
     NUM_ONE = 1
@@ -29,32 +29,32 @@ class Keyboard(Enum):
 
 class KeyboardPressor:
     """
-    Keyboard pressing controller for vision-guided robotic operations.
+    键盘按压控制器
 
-    Integrates RealSense camera, YOLOv8 object detection, and Dobot robotic arm
-    to achieve automatic key pressing based on visual guidance.
+    集成 RealSense 相机、YOLOv8 目标检测和 Dobot 机械臂，
+    实现视觉引导的自动按键功能。
 
-    Supports two pressing modes:
-    1. Automatic key detection and pressing based on YOLOv8 detection
-    2. Manual position pressing based on mouse click coordinates
+    支持两种按压模式：
+    1. 基于目标检测的自动识别按键按压
+    2. 基于鼠标点击的指定位置按压
 
     Attributes:
-        config: Camera calibration configuration
-        robot: Dobot MG400 robotic arm controller
-        cap: RealSense camera
-        engine: YOLOv8 inference engine
-        robot_pix_x: Current robot pixel X coordinate
-        robot_pix_y: Current robot pixel Y coordinate
-        scale: Scale ratio for pixel-to-pose conversion
-        press_deep: Key press depth in millimeters
+        config: 相机校准配置
+        robot: Dobot MG400 机械臂控制器
+        cap: RealSense 相机
+        engine: YOLOv8 推理引擎
+        robot_pix_x: 机器人当前像素 X 坐标
+        robot_pix_y: 机器人当前像素 Y 坐标
+        scale: 比例尺
+        press_deep: 按压深度
     """
 
     def __init__(self, model_path: str):
         """
-        Initialize the keyboard pressing controller.
+        初始化键盘按压控制器
 
         Args:
-            model_path: Path to the YOLOv8 ONNX model file
+            model_path: YOLOv8 ONNX 模型文件路径
         """
         self.click_point = (640, 360)
         self.config = Config()
@@ -75,9 +75,9 @@ class KeyboardPressor:
 
     def to_init_pose(self):
         """
-        Move to initial pose.
+        移动到初始姿态
 
-        Resets the robot to the initial position and resets the camera target point.
+        重置机器人到初始位置，并重置相机的目标点。
         """
         self.robot_pix_x, self.robot_pix_y = self.config.init_pix[0], self.config.init_pix[1]
         self.robot.to_init_pose()
@@ -85,16 +85,16 @@ class KeyboardPressor:
 
     def pix2pose(self, point: tuple):
         """
-        Convert pixel coordinates to robotic arm displacement.
+        像素坐标转换为机械臂位移
 
-        Transforms pixel coordinate differences to robotic arm X/Y direction displacement.
-        Note: Pixel X corresponds to robot Y, and pixel Y corresponds to robot X (axes swapped).
+        将像素坐标差值转换为机械臂的 X/Y 方向位移。
+        注意：像素 X 对应机械臂 Y，像素 Y 对应机械臂 X（轴互换）。
 
         Args:
-            point: Target pixel coordinates (x, y)
+            point: 目标像素坐标 (x, y)
 
         Returns:
-            tuple: (delta_pose_x, delta_pose_y) - Robot displacement in millimeters
+            tuple: (delta_pose_x, delta_pose_y) 机械臂位移量（mm）
         """
         delta_pix_x = point[0] - self.robot_pix_x
         delta_pix_y = point[1] - self.robot_pix_y
@@ -106,13 +106,12 @@ class KeyboardPressor:
 
     def press_pix_point(self, point: tuple):
         """
-        Press at specified pixel position.
+        按压指定像素位置
 
-        Calculates depth and displacement based on pixel coordinates,
-        then controls the robotic arm to execute the pressing action.
+        根据像素坐标计算深度和位移，控制机械臂执行按压动作。
 
         Args:
-            point: Target pixel coordinates (x, y)
+            point: 目标像素坐标 (x, y)
         """
         pix_x, pix_y = point[0], point[1]
         depth = self.cap.get_point_depth((pix_x, pix_y)) * 1000
@@ -127,13 +126,12 @@ class KeyboardPressor:
 
     def press_pix_point_with_depth(self, point: tuple):
         """
-        Press at specified pixel position with known depth.
+        按压指定像素位置（带深度）
 
-        Calculates displacement based on pixel coordinates and given depth,
-        then controls the robotic arm to execute the pressing action.
+        根据像素坐标和给定深度计算位移，控制机械臂执行按压动作。
 
         Args:
-            point: Target pixel coordinates and depth (x, y, depth)
+            point: 目标像素坐标与深度 (x, y, depth)
         """
         pix_x, pix_y, depth = point[0], point[1], point[2]
         delta_z = -(depth - self.config.cap_to_robot_end) - self.config.press_deep
@@ -147,16 +145,15 @@ class KeyboardPressor:
 
     def press_num(self, num: Keyboard):
         """
-        Press specified number key.
+        按压指定数字键
 
-        Based on YOLOv8 detection results, finds the position of the corresponding
-        number key and executes the pressing action.
+        基于 YOLOv8 检测结果，找到对应数字键的位置并执行按压。
 
         Args:
-            num: Keyboard enum value (NUM_ZERO, NUM_ONE, NUM_TWO)
+            num: Keyboard 枚举值（NUM_ZERO, NUM_ONE, NUM_TWO）
 
         Returns:
-            None: Returns early if the target key is not detected
+            None: 如果未检测到目标按键则直接返回
         """
         index = num.value
         detect_res = self.engine.latest_res
@@ -180,16 +177,16 @@ class KeyboardPressor:
 
     def mouse_callback(self, event, x, y, flags, param):
         """
-        Mouse event callback function.
+        鼠标事件回调函数
 
-        Captures mouse click position for manually specifying press points.
+        捕获鼠标点击位置用于手动指定按压点。
 
         Args:
-            event: OpenCV mouse event type
-            x: Click position X coordinate
-            y: Click position Y coordinate
-            flags: Mouse event flags
-            param: Additional parameters
+            event: OpenCV 鼠标事件类型
+            x: 点击位置 X 坐标
+            y: 点击位置 Y 坐标
+            flags: 鼠标事件标志位
+            param: 附加参数
         """
         if event == cv2.EVENT_LBUTTONDOWN:
             self.click_point = (x, y)
@@ -197,10 +194,10 @@ class KeyboardPressor:
 
     def _inference_loop(self):
         """
-        YOLO inference loop (runs in background thread).
+        YOLO 推理循环（后台线程运行）
 
-        Continuously captures camera frames, executes object detection,
-        and draws detection results and calibration region markers on the image.
+        持续捕获相机帧，执行目标检测，
+        并在图像上绘制检测结果和校准区域标记。
         """
         while True:
             color_frame = self.cap.get_latest()[0]

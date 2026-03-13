@@ -87,7 +87,19 @@ class Config:
 
 
 def pixel_to_world(H, u, v):
+    """
+    将像素坐标转换为世界坐标
 
+    使用单应矩阵将图像像素坐标转换为机械臂世界坐标。
+
+    Args:
+        H: 单应矩阵 (3x3)
+        u: 像素坐标 u (列)
+        v: 像素坐标 v (行)
+
+    Returns:
+        tuple: (X, Y) - 世界坐标 (mm)
+    """
     p = np.array([u, v, 1])
 
     p2 = H @ p
