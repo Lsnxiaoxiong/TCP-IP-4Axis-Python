@@ -77,9 +77,9 @@ class DobotMG400:
         最后下降到初始 Z 坐标。
         """
 
-        self.run_point([self.x, self.y, self.init_pose[2], 0])
-        self.x, self.y, self.z = self.init_pose[0], self.init_pose[1], self.init_pose[2]
-        self.run_point([self.x, self.y, self.z, 0])
+        # self.run_point([self.x, self.y, self.init_pose[2], 0])
+        # self.x, self.y, self.z = self.init_pose[0], self.init_pose[1], self.init_pose[2]
+        self.run_point([self.init_pose[0], self.init_pose[1], self.init_pose[2], 0])
 
     def to_delta_pose(self, delta_x, delta_y,delta_z):
         """

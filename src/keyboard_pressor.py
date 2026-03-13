@@ -78,9 +78,9 @@ class KeyboardPressor:
 
         重置机器人到初始位置，并重置相机的目标点。
         """
-        self.robot_pix_x, self.robot_pix_y = self.config.init_pix[0], self.config.init_pix[1]
+        # self.robot_pix_x, self.robot_pix_y = self.config.init_pix[0], self.config.init_pix[1]
         self.robot.to_init_pose()
-        self.cap.init_tar()
+        # self.cap.init_tar()
 
     def pix2pose(self, point: tuple):
         """
@@ -113,13 +113,13 @@ class KeyboardPressor:
             point: 目标像素坐标 (x, y)
         """
         pix_x, pix_y = point[0], point[1]
-        depth = self.cap.get_point_depth((pix_x, pix_y)) * 1000
-        delta_z = -(depth - self.config.cap_to_robot_end) - self.config.press_deep
-        delta_x, delta_y = self.pix2pose((pix_x, pix_y))
+        depth = point[2]
+        robot_z = self.config.init_pos[2] -(depth - self.config.cap_to_robot_end) - self.config.press_deep
+        robot_x, robot_y = self.config.pixel_to_world(pix_x, pix_y)
 
-        self.robot_pix_x, self.robot_pix_y = pix_x, pix_y
-        print(delta_z)
-        self.robot.to_delta_pose(delta_x, delta_y, delta_z)
+        # self.robot_pix_x, self.robot_pix_y = pix_x, pix_y
+        # print(delta_z)
+        self.robot.run_point([robot_x, robot_y, robot_z])
         time.sleep(1)
         self.to_init_pose()
 

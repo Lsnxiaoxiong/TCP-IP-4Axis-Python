@@ -24,6 +24,9 @@ class Config:
         with open("cali.json", "r") as f:
             config = json.load(f)
         try:
+            self.pix_points= config["pix_points"]
+            self.robot_points = config["robot_points"]
+            self.H, mask = cv2.findHomography(np.array(self.pix_points, dtype=np.float32),np.array(self.robot_points, dtype=np.float32))
             self.left_top = (config["left_top"]["x"], config["left_top"]["y"])
             self.right_bottom = (config["right_bottom"]["x"], config["right_bottom"]["y"])
             self.pix_left_top = (config["pix_left_top"]["x"], config["pix_left_top"]["y"])
@@ -42,6 +45,19 @@ class Config:
         except Exception as e:
             print(e)
             raise RuntimeError("加载 cali.json 配置文件失败")
+
+    def pixel_to_world(self, u, v):
+
+        p = np.array([u, v, 1])
+
+        p2 = self.H @ p
+
+        p2 = p2 / p2[2]
+
+        x = p2[0]
+        y = p2[1]
+
+        return float(x), float(y)
 
     @property
     def scale(self):
@@ -86,18 +102,7 @@ class Config:
 
 
 
-def pixel_to_world(H, u, v):
 
-    p = np.array([u, v, 1])
-
-    p2 = H @ p
-
-    p2 = p2 / p2[2]
-
-    X = p2[0]
-    Y = p2[1]
-
-    return X, Y
 
 
 
@@ -133,4 +138,7 @@ if __name__ == "__main__":
 
     print("Homography matrix:")
     print(H)
-    print(pixel_to_world(H, 744, 283))
+    # print(pixel_to_world(H, 744, 283))
+
+    conf = Config()
+    print(conf.pixel_to_world(744, 283))

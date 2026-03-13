@@ -7,8 +7,8 @@ from src.tcp_server import TCPServer
 
 if __name__ == '__main__':
 
-    # controller = KeyboardPressor(
-    #     model_path=r"best.onnx")
+    controller = KeyboardPressor(
+        model_path=r"best.onnx")
     server = TCPServer('localhost', 45678)
     server_worker = threading.Thread(target=server.start)
     server_worker.daemon = True
@@ -24,7 +24,7 @@ if __name__ == '__main__':
                 """
                 point = msg["point"]
                 print("p")
-                # controller.press_pix_point(point)
+                controller.press_pix_point(point)
             server.send_msg("1")
         except Exception as e:
             print(e)
