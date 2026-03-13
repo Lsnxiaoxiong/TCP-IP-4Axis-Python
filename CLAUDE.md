@@ -31,7 +31,7 @@ TCP-IP-4Axis-Python is a Python-based SDK for controlling Dobot robotic arms (MG
 python src/keyboard_pressor.py
 
 # Camera calibration utility
-python src/realsense_435i.py  # Then call cap.cali()
+python src/realsense435i.py  # Then call cap.cali()
 
 # Test robot connection
 python src/dobot_mg400.py
@@ -184,18 +184,19 @@ Error codes are stored in `files/alarm_controller.json` and `files/alarm_servo.j
 
 ## Threading Model
 
-### main.py (4 threads)
-1. **Main thread** - Connects and sends commands
-2. **Feedback thread** - Continuously reads 1440-byte state packets
-3. **Error handling thread** - Monitors and clears errors
-4. **Motion thread** - Executes movement commands
-
 ### keyboard_pressor.py (multiple threads)
+
 1. **Main thread** - TCP server command processing
-2. **Inference thread** - Camera capture and YOLO detection
+2. **Inference thread** - Camera capture and YOLO detection (runs in loop)
 3. **Feedback thread** - Robot state monitoring (in DobotMG400)
 4. **Error handling thread** - Robot error monitoring (in DobotMG400)
 5. **Camera thread** - RealSense frame capture (in RealSense435i)
+
+### DobotMG400 class threads
+
+Started automatically on initialization:
+- **Feedback thread** (`get_feed`): Continuously reads 1440-byte state packets from port 30004
+- **Error handling thread** (`clear_robot_error`): Monitors and clears robot errors
 
 Use `globalLockValue` (threading.Lock) to protect shared state:
 - `current_actual` - Current TCP coordinates [x, y, z, r]

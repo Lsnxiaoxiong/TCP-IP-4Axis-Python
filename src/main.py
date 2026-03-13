@@ -18,8 +18,9 @@ if __name__ == '__main__':
         msg = server.msg
         try:
             if "points" in msg:
-                """
-                    {"points":[123,456]}
+                """ 
+                    {"points":[x,y,depth]}
+                    {"points":[123,456, 233]}
                 """
                 point = msg["points"]
                 print("p")

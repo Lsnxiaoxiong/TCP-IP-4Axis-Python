@@ -1,4 +1,3 @@
-
 import time
 from enum import Enum
 
@@ -48,6 +47,7 @@ class KeyboardPressor:
         scale: 比例尺
         press_deep: 按压深度
     """
+
     def __init__(self, model_path: str):
         """
         初始化键盘按压控制器
@@ -114,6 +114,25 @@ class KeyboardPressor:
         """
         pix_x, pix_y = point[0], point[1]
         depth = self.cap.get_point_depth((pix_x, pix_y)) * 1000
+        delta_z = -(depth - self.config.cap_to_robot_end) - self.config.press_deep
+        delta_x, delta_y = self.pix2pose((pix_x, pix_y))
+
+        self.robot_pix_x, self.robot_pix_y = pix_x, pix_y
+        print(delta_z)
+        self.robot.to_delta_pose(delta_x, delta_y, delta_z)
+        time.sleep(1)
+        self.to_init_pose()
+
+    def press_pix_point_with_depth(self, point: tuple):
+        """
+        按压指定像素位置
+
+        根据像素坐标计算深度和位移，控制机械臂执行按压动作。
+
+        Args:
+            point: 目标像素坐标与深度 (x, y, depth)
+        """
+        pix_x, pix_y, depth = point[0], point[1], point[2]
         delta_z = -(depth - self.config.cap_to_robot_end) - self.config.press_deep
         delta_x, delta_y = self.pix2pose((pix_x, pix_y))
 
@@ -197,6 +216,3 @@ class KeyboardPressor:
             cv2.setMouseCallback("frame", self.mouse_callback)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
-
-
