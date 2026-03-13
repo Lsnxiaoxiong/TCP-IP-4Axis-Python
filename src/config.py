@@ -83,3 +83,48 @@ class Config:
             float: Y 轴比例尺（像素/毫米）
         """
         return (self.pix_right_bottom[0] - self.pix_left_top[0]) / (self.right_bottom[1] - self.left_top[1])
+
+
+
+def pixel_to_world(H, u, v):
+
+    p = np.array([u, v, 1])
+
+    p2 = H @ p
+
+    p2 = p2 / p2[2]
+
+    X = p2[0]
+    Y = p2[1]
+
+    return X, Y
+
+
+
+
+if __name__ == "__main__":
+    import cv2
+    import numpy as np
+
+    # 像素坐标
+    pixel_pts = np.array([
+        [320, 240],
+        [640, 240],
+        [320, 480],
+        [640, 480]
+    ], dtype=np.float32)
+
+    # 平面坐标 (mm)
+    world_pts = np.array([
+        [0, 0],
+        [200, 0],
+        [0, 200],
+        [200, 200]
+    ], dtype=np.float32)
+
+    # 计算单应矩阵
+    H, mask = cv2.findHomography(pixel_pts, world_pts)
+
+    print("Homography matrix:")
+    print(H)
+    print(pixel_to_world(H, 500, 350))
