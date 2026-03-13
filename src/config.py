@@ -48,7 +48,21 @@ class Config:
             raise RuntimeError("加载 cali.json 配置文件失败")
 
     def pixel_to_world(self, u, v):
+        """
+        像素坐标到机械臂坐标的转换
 
+        使用单应矩阵（Homography）将像素坐标转换为机械臂工作空间的世界坐标。
+        该变换基于相机校准期间获取的对应点对计算得出。
+
+        Args:
+            u: 像素 X 坐标（列索引）
+            v: 像素 Y 坐标（行索引）
+
+        Returns:
+            tuple: (x, y) 转换后的机械臂坐标（单位：毫米）
+                - x: 机械臂 X 坐标
+                - y: 机械臂 Y 坐标
+        """
         p = np.array([u, v, 1])
 
         p2 = self.H @ p
