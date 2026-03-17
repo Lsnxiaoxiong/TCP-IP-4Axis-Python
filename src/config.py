@@ -89,31 +89,6 @@ class Config:
         x_scale = (self.pix_right_bottom[1] - self.pix_left_top[1]) / (self.right_bottom[0] - self.left_top[0])
         return (y_scale + x_scale) / 2
 
-    @property
-    def scale_x(self):
-        """
-        计算 X 轴比例尺
-
-        像素 Y 坐标差值与机械臂 X 坐标差值的比率。
-        用于将像素 Y 方向的位移转换为机械臂 X 方向的位移。
-
-        Returns:
-            float: X 轴比例尺（像素/毫米）
-        """
-        return (self.pix_right_bottom[1] - self.pix_left_top[1]) / (self.right_bottom[0] - self.left_top[0])
-
-    @property
-    def scale_y(self):
-        """
-        计算 Y 轴比例尺
-
-        像素 X 坐标差值与机械臂 Y 坐标差值的比率。
-        用于将像素 X 方向的位移转换为机械臂 Y 方向的位移。
-
-        Returns:
-            float: Y 轴比例尺（像素/毫米）
-        """
-        return (self.pix_right_bottom[0] - self.pix_left_top[0]) / (self.right_bottom[1] - self.left_top[1])
 
 
 

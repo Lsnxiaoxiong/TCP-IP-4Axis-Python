@@ -217,12 +217,12 @@ class RealSense435i:
 
                 color_image_bgr = cv2.cvtColor(color_image, cv2.COLOR_RGB2BGR)
 
-                cv2.circle(color_image_bgr, (640, 360), 5, (0, 0, 255))
+                # cv2.circle(color_image_bgr, (640, 360), 5, (0, 0, 255))
                 # cv2.circle(color_image_bgr, (644, 473), 5, (0, 0, 255))
-                cv2.line(color_image_bgr, (340, 200), (940, 200), (0, 255, 0), thickness=1)
-                cv2.line(color_image_bgr, (340, 200), (340, 540), (0, 255, 0), thickness=1)
-                cv2.line(color_image_bgr, (340, 540), (940, 540), (0, 255, 0), thickness=1)
-                cv2.line(color_image_bgr, (940, 200), (940, 540), (0, 255, 0), thickness=1)
+                # cv2.line(color_image_bgr, (340, 200), (940, 200), (0, 255, 0), thickness=1)
+                # cv2.line(color_image_bgr, (340, 200), (340, 540), (0, 255, 0), thickness=1)
+                # cv2.line(color_image_bgr, (340, 540), (940, 540), (0, 255, 0), thickness=1)
+                # cv2.line(color_image_bgr, (940, 200), (940, 540), (0, 255, 0), thickness=1)
                 cv2.imshow("Color", color_image_bgr)
                 cv2.setMouseCallback("Color", self.mouse_callback)
                 # cv2.imshow("Depth", depth_colormap)
