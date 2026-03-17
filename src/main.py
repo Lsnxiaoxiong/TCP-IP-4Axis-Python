@@ -11,8 +11,7 @@ if __name__ == '__main__':
     server_worker = threading.Thread(target=server.start)
     server_worker.daemon = True
     server_worker.start()
-    controller = KeyboardPressor(
-        model_path=r"best.onnx")
+    controller = KeyboardPressor()
 
     while True:
         msg = server.msg
@@ -23,8 +22,8 @@ if __name__ == '__main__':
                     {"point":[123,456,20]}
                 """
                 point = msg["point"]
-                print("p")
                 controller.press_pix_point(point)
             server.send_msg("1")
         except Exception as e:
             print(e)
+            server.send_msg("0")
