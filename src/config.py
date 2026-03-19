@@ -6,25 +6,25 @@ class Config:
     """
     配置类
 
-    从 cali.json 加载相机校准参数和机器人配置信息，
+    从 cali.json 加载相机校准参数和机械臂配置信息，
     提供像素坐标到世界坐标的转换功能。
 
     Attributes:
         pix_points: 相机像素坐标点列表
-        robot_points: 机器人世界坐标点列表 (mm)
+        robot_points: 机械臂世界坐标点列表 (mm)
         H: 单应性矩阵，用于像素到世界的坐标变换
-        press_deep: 按压深度
-        max_deep: 最大深度
-        init_pos: 初始位置坐标 (x, y, z)
-        robot_on_keyboard: 机器人在键盘上的 Z 轴位置
-        robot_to_keyboard: 机器人末端到键盘的距离
-        cap_to_robot_end: 相机到机器人末端的距离
+        press_deep: 按压深度(mm)
+        max_deep: 机械臂最大深度(mm)
+        init_pos: 机械臂初始位置坐标 (x, y, z)
+        robot_on_keyboard: 机械臂末端接触键盘时z坐标(mm)
+        robot_to_keyboard: 机械臂末端到键盘的高度(mm)
+        cap_to_robot_end: 相机到机械臂末端的高度(mm)
     """
     def __init__(self):
         """
         初始化配置类
 
-        从 cali.json 文件加载校准参数和机器人配置，
+        从 cali.json 文件加载校准参数和机械臂配置，
         计算单应性矩阵用于坐标变换。
 
         Raises:
@@ -57,7 +57,7 @@ class Config:
         """
         将像素坐标转换为世界坐标
 
-        使用单应性矩阵将图像像素坐标 (u, v) 转换为机器人世界坐标 (x, y)。
+        使用单应性矩阵将图像像素坐标 (u, v) 转换为机械臂世界坐标 (x, y)。
 
         Args:
             u: 像素坐标 U
