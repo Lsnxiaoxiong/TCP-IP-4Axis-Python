@@ -40,7 +40,6 @@ class Config:
             self.H, mask = cv2.findHomography(np.array(self.pix_points, dtype=np.float32),np.array(self.robot_points, dtype=np.float32))
 
             self.press_deep = config["press_deep"]
-            self.max_deep = config["max_deep"]
             self.init_pos = (config["init_pos"]["pos_x"], config["init_pos"]["pos_y"], config["init_pos"]["pos_z"])
 
             self.robot_on_keyboard = config["robot_on_keyboard"]
@@ -48,7 +47,7 @@ class Config:
                 self.robot_to_keyboard = abs(self.robot_on_keyboard-self.init_pos[2])
             else:
                 self.robot_to_keyboard = abs(self.robot_on_keyboard) + abs(self.init_pos[2])
-            self.cap_to_robot_end = config["cap_to_keyborad"] - self.robot_to_keyboard
+            self.cap_to_robot_end = config["cap_to_keyboard"] - self.robot_to_keyboard
         except Exception as e:
             print(e)
             raise RuntimeError("加载 cali.json 配置文件失败")
