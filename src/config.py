@@ -14,7 +14,6 @@ class Config:
         robot_points: 机械臂世界坐标点列表 (mm)
         H: 单应性矩阵，用于像素到世界的坐标变换
         press_deep: 按压深度(mm)
-        max_deep: 机械臂最大深度(mm)
         init_pos: 机械臂初始位置坐标 (x, y, z)
         robot_on_keyboard: 机械臂末端接触键盘时z坐标(mm)
         robot_to_keyboard: 机械臂末端到键盘的高度(mm)
@@ -43,6 +42,7 @@ class Config:
             self.init_pos = (config["init_pos"]["pos_x"], config["init_pos"]["pos_y"], config["init_pos"]["pos_z"])
 
             self.robot_on_keyboard = config["robot_on_keyboard"]
+            # 参考文档1.2.1原理
             if self.robot_on_keyboard*self.init_pos[2] > 0:
                 self.robot_to_keyboard = abs(self.robot_on_keyboard-self.init_pos[2])
             else:

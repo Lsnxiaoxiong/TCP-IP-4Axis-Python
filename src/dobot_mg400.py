@@ -107,7 +107,10 @@ class DobotMG400:
             point_list: 目标点坐标列表 [x, y, z, r]
         """
         self.move.MovL(point_list[0], point_list[1], point_list[2], point_list[3])
+
         self.wait_arrive(point_list)
+
+        return {"pos":self.dashboard.GetPose()}.__str__()
 
     def get_feed(self, feed: DobotApi):
         """
@@ -133,6 +136,7 @@ class DobotMG400:
                     data += temp
             hasRead = 0
             feedInfo = np.frombuffer(data, dtype=MyType)
+            # print(feedInfo)
             if hex((feedInfo['test_value'][0])) == '0x123456789abcdef':
                 globalLockValue.acquire()
                 # Refresh Properties

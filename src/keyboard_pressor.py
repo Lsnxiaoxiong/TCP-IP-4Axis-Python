@@ -3,6 +3,8 @@ from src.config import Config
 from src.dobot_mg400 import DobotMG400
 import threading
 
+from src.tcp_server import TCPServer
+
 
 class KeyboardPressor:
     """
@@ -28,10 +30,13 @@ class KeyboardPressor:
         """
         self.config = Config()
         self.robot = DobotMG400(init_pose=self.config.init_pos)
-
+        self.server = TCPServer('localhost', 45679)
+        self._status_thread = threading.Thread(target=self.server.start)
+        self._status_thread.start()
         self.press_deep = self.config.press_deep
 
         self.to_init_pose(self.config.init_pos[0], self.config.init_pos[1])
+
 
     def to_init_pose(self,x ,y ):
         """
@@ -66,10 +71,10 @@ class KeyboardPressor:
         depth = point[2]
         robot_z = self.config.init_pos[2] -(depth - self.config.cap_to_robot_end) - self.config.press_deep
         robot_x, robot_y = self.config.pixel_to_world(pix_x, pix_y)
-
-        self.robot.run_point([robot_x, robot_y, self.config.init_pos[2],0])
-        self.robot.run_point([robot_x, robot_y, robot_z,0])
+        res = self.robot.run_point([robot_x, robot_y, self.config.init_pos[2],0])
+        self.server.send_msg(res)
+        res = self.robot.run_point([robot_x, robot_y, robot_z,0])
+        self.server.send_msg(res)
         time.sleep(1)
         self.to_init_pose(robot_x, robot_y)
-
 
