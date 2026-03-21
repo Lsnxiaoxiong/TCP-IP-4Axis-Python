@@ -69,6 +69,7 @@ class KeyboardPressor:
         """
         pix_x, pix_y = point[0], point[1]
         depth = point[2]
+        # 参考1.2.1原理
         robot_z = self.config.init_pos[2] -(depth - self.config.cap_to_robot_end) - self.config.press_deep
         robot_x, robot_y = self.config.pixel_to_world(pix_x, pix_y)
         res = self.robot.run_point([robot_x, robot_y, self.config.init_pos[2],0])
