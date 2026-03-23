@@ -1,4 +1,5 @@
 import socket
+import threading
 
 
 class TCPClient:
@@ -33,11 +34,25 @@ class TCPClient:
         """
         try:
             self.socket.connect((self.host, self.port))
+
+            self._recv_thread = threading.Thread(target=self.receive_message)
+            self._recv_thread.start()
             print(f"已连接到服务器 {self.host}:{self.port}")
             return True
         except Exception as e:
             print(f"连接失败：{e}")
             return False
+
+    def receive_message(self):
+        while True:
+            # 接收数据
+            data = self.socket.recv(1024)
+            if not data:
+                break
+
+            message = data.decode('utf-8')
+            # print(f"收到消息：{message}")
+            print(data)
 
     def send_message(self, message):
         """
@@ -51,8 +66,8 @@ class TCPClient:
         """
         try:
             self.socket.send(message.encode('utf-8'))
-            response = self.socket.recv(1024)
-            return response.decode('utf-8')
+            # response = self.socket.recv(1024)
+            # return response.decode('utf-8')
         except Exception as e:
             print(f"发送消息失败：{e}")
             return None
@@ -69,7 +84,7 @@ class TCPClient:
 
 # 使用 TCP 客户端
 if __name__ == "__main__":
-    client = TCPClient()
+    client = TCPClient(port=45679)
 
     if client.connect():
         try:
@@ -78,8 +93,7 @@ if __name__ == "__main__":
                 if message.lower() == 'quit':
                     break
 
-                response = client.send_message(message)
-                if response:
-                    print(f"服务器回复：{response}")
+                client.send_message(message)
+
         finally:
             client.close()
